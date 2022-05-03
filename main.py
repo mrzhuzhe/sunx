@@ -1,4 +1,3 @@
-from turtle import color
 from scene import Scene
 import taichi as ti
 from taichi.math import *
@@ -14,7 +13,8 @@ scene.set_directional_light((1, 1, -1), 0.2, (1, 0.8, 0.6))
 @ti.kernel
 def initialize_voxels():
     n = 60
-    for i, j, k in ti.ndrange((-n, n), (-n, 0), (-n, n)):
+    for i, j, k in ti.ndrange((-n, n), (-3, 3), (-n, n)):
+        """
         x = ivec3(i, j, k)
         if  x.dot(x) < n * n * 0.5:
             if n * n * 0.4 < x.dot(x):
@@ -24,7 +24,13 @@ def initialize_voxels():
                     scene.set_voxel(vec3(i+15, j-20, -17-j+i), 1 , vec3(0.9, 0.9, 0.1)) 
                     scene.set_voxel(vec3(i-15, j-20, -15-i), 1 , vec3(0.9, 0.9, 0.1)) 
                     scene.set_voxel(vec3(i, j-20, -20-j), 1 , vec3(0.9, 0.9, 0.1)) 
-
+        """
+        
+        if ti.pow(i*0.05, 2) + ti.pow(k*0.05 - ti.pow((i*0.05)**2, 0.333), 2) <= 1:
+            #scene.set_voxel(vec3(i, 5*ti.sin(i*0.05)**2 + 5*ti.cos(k*0.05)**2,  -k), 1 , vec3(0.9, 0.9, 0.1)) 
+            #scene.set_voxel(vec3(i,  5*ti.sin(k*0.05),  -k), 1 , vec3(0.9, 0.9, 0.1)) 
+            scene.set_voxel(vec3(i,  j,  -k), 1 , vec3(0.9, 0.9, 0.1)) 
+            #scene.set_voxel(vec3(i,  -5-5*ti.sin(k*0.05),  -k), 1 , vec3(0.9, 0.9, 0.1)) 
     """
     
     n = 3
