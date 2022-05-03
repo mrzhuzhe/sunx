@@ -21,7 +21,7 @@ def initialize_voxels():
             # heart
             #scene.set_voxel(vec3(i,  j/10,  -k+10), 1 , vec3(0.9, 0.9, 0.1)) 
             
-            # rotate k   x cos - y sin  y cos + xq sin             
+            # rotate k   x cos - y sin  y cos + xq sin  https://www.khanacademy.org/computing/computer-programming/programming-games-visualizations/programming-3d-shapes/a/rotating-3d-shapes
             scene.set_voxel(vec3(i,  j/10*ti.cos(-45) - (k-10) *ti.sin(-45) ,  (k-10) *ti.cos(-45) + j/10*ti.sin(-45) ), 1 , vec3(0.9, 0.9, 0.1)) 
 
 initialize_voxels()
