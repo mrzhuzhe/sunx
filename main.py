@@ -10,19 +10,11 @@ scene.set_directional_light((1, 1, -1), 0.2, (1, 0.8, 0.6))
 @ti.kernel
 def initialize_voxels():
     n = 60
-    for i, j, k in ti.ndrange((-n, n), (-n, 0), (-n, n)):
-        
-        x = ivec3(i, j, k)
-        if  x.dot(x) < n * n * 0.5:
-            if n * n * 0.4 < x.dot(x):
-                scene.set_voxel(vec3(i, j*ti.cos(-45) - k*ti.sin(-45) , k*ti.cos(-45) + j*ti.sin(-45)), 1, vec3(0.9, 0.3, 0.3))
-        
-        if ti.pow(i*0.05, 2) + ti.pow(k*0.05 - ti.pow((i*0.05)**2, 0.333), 2) <= 1:
-            # heart
-            #scene.set_voxel(vec3(i,  j/10,  -k+10), 1 , vec3(0.9, 0.9, 0.1)) 
-            
-            # rotate k   x cos - y sin  y cos + xq sin  https://www.khanacademy.org/computing/computer-programming/programming-games-visualizations/programming-3d-shapes/a/rotating-3d-shapes
-            scene.set_voxel(vec3(i,  j/10*ti.cos(-45) - (k-10) *ti.sin(-45) ,  (k-10) *ti.cos(-45) + j/10*ti.sin(-45) ), 1 , vec3(0.9, 0.9, 0.1)) 
+    for x, y, z in ti.ndrange((-n, n), (-n, n), (-n, n)):
+        a = ivec3(x, y, z)
+        b = ivec3(10 * (y - x), (x* (28 - z) -y),  (x * y - 8/3 * z)) 
+        if (a - b).norm() < 75:
+            scene.set_voxel(vec3(x, y, z), 1 , vec3(0.9, 0.9, 0.1)) 
 
 initialize_voxels()
 
