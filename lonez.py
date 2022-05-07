@@ -11,7 +11,7 @@ def f(state, t):
     x, y, z = state  # Unpack the state vector
     return sigma * (y - x), x * (rho - z) - y, x * y - beta * z  # Derivatives
 
-state0 = np.array([1.0, 1.0, 1.0])
+state0 = np.array([20.0, 10.0, 5.0])
 dt = 0.01
 t = np.arange(0.0, 40.0, dt)
 
