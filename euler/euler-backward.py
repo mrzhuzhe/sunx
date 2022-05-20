@@ -13,17 +13,23 @@ def f(state, t):
 
 def d_f(state, t):
     return 0, -1 + -2 * np.exp(-2*t), 0  # 2th Derivatives
-    #return 0, -1, 0
+    #return 0, 4, 0
+
+def d_d_f(state, t):
+    return 0, 4 * np.exp(-2*t), 0  # 2th Derivatives
+    #return 0, 4, 0
 
 state0 = np.array([20.0, 10.0, 5.0])
 dt = 0.01
 t = np.arange(0.0, 40.0, dt)
 
 state = state0
-delta = 0
 states = []
+delta = 0
 for i in t:
-    delta += np.array(d_f(state, i)) * dt
+    A = 1 - np.array(d_d_f(state, i)) * dt * dt
+    b = delta + np.array(d_f(state, i)) * dt 
+    delta = b / A
     state = state + delta * dt
     states.append(state)
 states = np.array(states)
