@@ -26,7 +26,7 @@ states = np.array(states)
 
 fig = plt.figure()
 ax = fig.gca(projection="3d")
-ax.plot(states[:, 0], states[:, 1], states[:, 2])
+#ax.plot(states[:, 0], states[:, 1], states[:, 2])
 ax.plot(states2[:, 0], states2[:, 1], states2[:, 2])
 
 plt.draw()

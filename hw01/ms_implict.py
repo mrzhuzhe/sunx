@@ -30,6 +30,8 @@ A = ti.Matrix.field(2, 2, dtype=ti.f32, shape=(MAX_NUM_PARTICLES, MAX_NUM_PARTIC
 F = ti.Vector.field(2, dtype=ti.f32, shape=MAX_NUM_PARTICLES)
 b = ti.Vector.field(2, dtype=ti.f32, shape=MAX_NUM_PARTICLES)
 
+r = ti.Vector.field(2, dtype=ti.f32, shape=())
+
 spring_stiffness[None] = 10000
 damping[None] = 20  # 恒定阻尼
 
@@ -72,6 +74,12 @@ def init_M():
 def update_J():
     """更新 jacobi 矩阵
     - [Miles Macklin](https://blog.mmacklin.com/2012/05/04/implicitsprings/)
+    # update jacobi J
+    # [Miles Macklin](https://blog.mmacklin.com/2012/05/04/implicitsprings/)
+    # J[i, j] = ∂fi/∂xj
+    # fi = ∑fik and only when k = j, ∂fik/∂xj is non-zero
+    # therefore, J[i, j] = ∂fi/∂xj = ∑∂fik/∂xj = ∂fij/∂xj
+    # i = j is a special case, J[i, i] = ∑∂fik/∂xk
     """
     I = ti.Matrix([
         [1.0, 0.0],
@@ -81,6 +89,7 @@ def update_J():
     for i, d in J:  # 遍历 J
         # i 为观察的质点
         # d 为求导数的方向 x_d
+        J[i, d] *= 0.0  # [TODO]
         for j in range(num_particles[None]):  # 遍历所有点
             l_ij = rest_length[i, j] # 对于弹簧 i <-- j
             if (l_ij != 0) and (d == i or d == j):
@@ -88,11 +97,17 @@ def update_J():
                 x_ij = x[i] - x[j]
                 X_ij_bar = x_ij / x_ij.norm()
                 mat = X_ij_bar.outer_product(X_ij_bar)
-                J[i, d] += -k * (I - l_ij/x_ij.norm() * (I - mat))
+
+                #J[i, d] += -k * (I - l_ij/x_ij.norm() * (I - mat))
+                #if d==i:
+                #    J[i, d] *=  1.0
+                #else: # d==j
+                #    J[i, d] *= -1.0                
+                
                 if d==i:
-                    J[i, d] *=  1.0
+                    J[i, d] += -k * (I - l_ij/x_ij.norm() * (I - mat) + mat)
                 else: # d==j
-                    J[i, d] *= -1.0
+                    J[i, d] += k * (I - l_ij/x_ij.norm() * (I - mat) + mat)
 
 
 @ti.kernel
@@ -135,7 +150,8 @@ def update_b():
     """
     for i in range(num_particles[None]):
         v_star = v[i] * ti.exp(-dt * damping[None])
-        b[i] = A[i, i] @ v_star + dt * F[i]
+        #b[i] = A[i, i] @ v_star + dt * F[i]  # wrong
+        b[i] = M[i, i] @ v_star + dt * F[i]
 
 
 @ti.kernel
@@ -154,6 +170,18 @@ def jacobi():
 
         v[i] = A[i, i].inverse() @ b[i]
 
+@ti.kernel
+def residual() -> ti.f32:
+    n = num_particles[None]
+    res = 0.0
+    
+    for i in range(n):
+        r = b[i] * 1.0
+        for j in range(n):
+            r -= A[i, j] @ v[j]
+        res += r.x ** 2 +  r.y ** 2
+        
+    return res
 
 def implicit_euler(beta=0.5):
     """隐式欧拉法 + Jacobi 迭代
@@ -181,6 +209,7 @@ def implicit_euler(beta=0.5):
     update_F()
     update_b()
     jacobi()
+    print(residual())
 
 
 ## 通用步骤 ====================================
@@ -256,8 +285,8 @@ while True:
                 damping[None] *= 1.1
 
     if not paused[None]:
-        for _ in range(10): # 10 小步为一帧
-            substep()
+        #for _ in range(10): # 10 小步为一帧
+        substep()
     
     ## 绘制
     # 地板
