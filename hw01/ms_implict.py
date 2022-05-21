@@ -121,7 +121,8 @@ def update_J():
             X_ij_bar = x_ij / x_ij_norm
             X_ij_mat = X_ij_bar.outer_product(X_ij_bar)
             diff = -k * ((1 - l_ij/x_ij_norm) * (I - X_ij_mat) + X_ij_mat)
-            J[i, i] += diff
+            J[i, i] = diff
+            #J[i, i] += diff
             J[i, j] = -diff
 
 
@@ -176,14 +177,25 @@ def jacobi():
         A = M - dt^2 * J(t)
         b = M * v(t) + dt * F(t)
         A * v(t+1) = b
-    """
+    """  
     n = num_particles[None]
+    """
     for i in range(n):
         for j in range(n):
             if i != j:
                 b[i] -= A[i, j] @ v[j]
 
         v[i] = A[i, i].inverse() @ b[i]
+    """
+    for i in range(n):
+        r = b[i]
+        for j in range(n):
+            if i != j:
+                r -= A[i, j] @ v[j]
+
+        # use jacobi again to solve A[i, i] * v[i] = r
+        for j in ti.static(range(5)):
+            v[i][0], v[i][1] = (r[0] - A[i, i][0, 1] * v[i][1]) / A[i, i][0, 0], (r[1] - A[i, i][1, 0] * v[i][0]) / A[i, i][1, 1]
 
 @ti.kernel
 def residual() -> ti.f32:
@@ -223,6 +235,7 @@ def implicit_euler(beta=0.5):
     update_A(beta)
     update_F()
     update_b()
+    #for n in range(5):
     jacobi()
     print(residual())
 
