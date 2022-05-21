@@ -86,28 +86,43 @@ def update_J():
         [0.0, 1.0]
     ])
     k = spring_stiffness[None]
+    """
     for i, d in J:  # 遍历 J
-        # i 为观察的质点
-        # d 为求导数的方向 x_d
-        J[i, d] *= 0.0  # [TODO]
-        for j in range(num_particles[None]):  # 遍历所有点
-            l_ij = rest_length[i, j] # 对于弹簧 i <-- j
-            if (l_ij != 0) and (d == i or d == j):
-                # i,j 间有弹簧链接 && 求导方向 d 为 i 或 j
-                x_ij = x[i] - x[j]
-                X_ij_bar = x_ij / x_ij.norm()
-                mat = X_ij_bar.outer_product(X_ij_bar)
+    # i 为观察的质点
+    # d 为求导数的方向 x_d
+    J[i, d] *= 0.0  # [TODO]
+    for j in range(num_particles[None]):  # 遍历所有点
+        l_ij = rest_length[i, j] # 对于弹簧 i <-- j
+        if (l_ij != 0) and (d == i or d == j):
+            # i,j 间有弹簧链接 && 求导方向 d 为 i 或 j
+            x_ij = x[i] - x[j]
+            X_ij_bar = x_ij / x_ij.norm()
+            mat = X_ij_bar.outer_product(X_ij_bar)
 
-                #J[i, d] += -k * (I - l_ij/x_ij.norm() * (I - mat))
-                #if d==i:
-                #    J[i, d] *=  1.0
-                #else: # d==j
-                #    J[i, d] *= -1.0                
-                
-                if d==i:
-                    J[i, d] += -k * (I - l_ij/x_ij.norm() * (I - mat) + mat)
-                else: # d==j
-                    J[i, d] += k * (I - l_ij/x_ij.norm() * (I - mat) + mat)
+            #J[i, d] += -k * (I - l_ij/x_ij.norm() * (I - mat))
+            #if d==i:
+            #    J[i, d] *=  1.0
+            #else: # d==j
+            #    J[i, d] *= -1.0                
+            
+            if d==i:
+                J[i, d] += -k * (I - l_ij/x_ij.norm() * (I - mat) + mat)
+            else: # d==j
+                J[i, d] += k * (I - l_ij/x_ij.norm() * (I - mat) + mat)
+    """
+ 
+    for i in range(J.shape[0]):
+        J[i, i] = ti.Matrix([[0.0, 0.0], [0.0, 0.0]])
+    for i, j in J:
+        l_ij = rest_length[i, j]
+        if (l_ij > 0):
+            x_ij = x[i] - x[j]
+            x_ij_norm = x_ij.norm()
+            X_ij_bar = x_ij / x_ij_norm
+            X_ij_mat = X_ij_bar.outer_product(X_ij_bar)
+            diff = -k * ((1 - l_ij/x_ij_norm) * (I - X_ij_mat) + X_ij_mat)
+            J[i, i] += diff
+            J[i, j] = -diff
 
 
 @ti.kernel
