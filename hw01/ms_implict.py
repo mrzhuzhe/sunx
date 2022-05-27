@@ -72,8 +72,7 @@ def init_M():
 
 @ti.kernel
 def update_J():
-    """更新 jacobi 矩阵
-    - [Miles Macklin](https://blog.mmacklin.com/2012/05/04/implicitsprings/)
+    """
     # update jacobi J
     # [Miles Macklin](https://blog.mmacklin.com/2012/05/04/implicitsprings/)
     # J[i, j] = ∂fi/∂xj
@@ -103,11 +102,10 @@ def update_J():
                 #    J[i, d] *=  1.0
                 #else: # d==j
                 #    J[i, d] *= -1.0                
-                
                 if d==i:
                     J[i, d] += -k * (I - l_ij/x_ij.norm() * (I - mat) + mat)
                 else: # d==j
-                    J[i, d] += k * (I - l_ij/x_ij.norm() * (I - mat) + mat)
+                    J[i, d] = k * (I - l_ij/x_ij.norm() * (I - mat) + mat)
 
 
 @ti.kernel
@@ -163,6 +161,7 @@ def jacobi():
         A * v(t+1) = b
     """
     n = num_particles[None]
+    #for iter in range(5):
     for i in range(n):
         for j in range(n):
             if i != j:
