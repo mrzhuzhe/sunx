@@ -23,5 +23,6 @@ def initialize_voxels():
         if ti.pow(i*0.05, 2) + ti.pow(k*0.05 - ti.pow((i*0.05)**2, 0.333), 2) <= 1:
             _j, _k = rotate2d(j/10, k-10, -45)
             scene.set_voxel(vec3(i, _j, _k), 1 , vec3(0.9, 0.9, 0.1)) 
+            
 initialize_voxels()
 scene.finish()
